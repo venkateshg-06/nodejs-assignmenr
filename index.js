@@ -139,6 +139,21 @@ app.post('/api/todos',authMiddleware,  async (req, res) => {
         res.send(err)
     }
  })
+ // api for sigle todo
+
+ app.get("/api/todos/:todoId/", authMiddleware , async (req, res) => {
+    try{
+        const {todoId} = req.params
+        const resultTodo = await Todo.findOne({_id: todoId})
+        res.status(200)
+        res.send(resultTodo)
+
+
+    }catch(err){
+        res.status(400)
+        res.send(err)
+    }
+ })
 
  //delete api for todos 
 
