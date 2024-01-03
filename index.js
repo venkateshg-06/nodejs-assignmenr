@@ -26,7 +26,8 @@ async function intializeTheServerAndDatabase() {
 
 intializeTheServerAndDatabase()
 
-//register APi 
+
+//Register user API
 
 app.post("/api/register/", async (req, res)=> {
     const {username, password} = req.body
@@ -52,7 +53,7 @@ app.post("/api/register/", async (req, res)=> {
 
 })
 
-//login api 
+// LOGIN user API 
 
 app.post("/api/login/", async (req, res) => {
     try {
@@ -83,6 +84,8 @@ app.post("/api/login/", async (req, res) => {
 
 })
 
+// MIddleWare 
+
 const authMiddleware = (req, res, next) => {
     const token = req.header('Authorization');
     const tokenCode = token.split(" ")[1];
@@ -105,8 +108,9 @@ const authMiddleware = (req, res, next) => {
     
   };
 
+// POST or create todo API 
 
-app.post('/api/todos',authMiddleware,  async (req, res) => {
+app.post('/api/todos/',authMiddleware,  async (req, res) => {
     try {
       const { title, description } = req.body;
       const _id = req._id
@@ -124,9 +128,9 @@ app.post('/api/todos',authMiddleware,  async (req, res) => {
     }
   });
 
-  // get api for todos 
+  // GET todos API 
 
- app.get("/api/todos", authMiddleware , async (req, res) => {
+ app.get("/api/todos/", authMiddleware , async (req, res) => {
     try{
         const _id = req._id 
         const totalTodos = await Todo.find({user_id:_id})
@@ -139,7 +143,7 @@ app.post('/api/todos',authMiddleware,  async (req, res) => {
         res.send(err)
     }
  })
- // api for sigle todo
+ // GET TODO API
 
  app.get("/api/todos/:todoId/", authMiddleware , async (req, res) => {
     try{
@@ -155,24 +159,9 @@ app.post('/api/todos',authMiddleware,  async (req, res) => {
     }
  })
 
- //delete api for todos 
+ // PUT or Update todo API
 
- app.delete("/api/todos/:todoId", authMiddleware, async (req, res) => {
-    try {
-        const {todoId} = req.params
-        const user = req._id
-        const details = await Todo.findByIdAndDelete({_id: todoId})
-        res.send("deleted successfully")
-    }catch (err){
-        res.status(400)
-        res.send(err)
-    }
-      
- })
-
- // api to update the todo 
-
- app.put("/api/todos/:todoId", authMiddleware, async (req, res) => {
+ app.put("/api/todos/:todoId/", authMiddleware, async (req, res) => {
     try {
         const {todoId} = req.params
         const _id = req._id
@@ -186,3 +175,21 @@ app.post('/api/todos',authMiddleware,  async (req, res) => {
     }
       
  })
+
+ //DELETE Todo API
+
+ app.delete("/api/todos/:todoId/", authMiddleware, async (req, res) => {
+    try {
+        const {todoId} = req.params
+        const user = req._id
+        const details = await Todo.findByIdAndDelete({_id: todoId})
+        res.send("deleted successfully")
+    }catch (err){
+        res.status(400)
+        res.send(err)
+    }
+      
+ })
+
+ 
+ 
