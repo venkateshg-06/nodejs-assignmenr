@@ -95,7 +95,9 @@ const authMiddleware = (req, res, next) => {
               res.status(401);
               res.send("Invalid JWT Token");
             } else {
-                req.username = payload.username;
+                const username = payload.username;
+                const { _id} = await User.findOne({username})
+                req._id = _id
               next();
             }
           });
@@ -107,12 +109,11 @@ const authMiddleware = (req, res, next) => {
 app.post('/api/todos',authMiddleware,  async (req, res) => {
     try {
       const { title, description } = req.body;
-      let { username } = req.username;
-      console.log(username)
+      const _id = req._id
       const todo = new Todo({
         title,
         description,
-        user: req.userId,
+        user_id: _id,
       });
       await todo.save();
   
@@ -122,3 +123,51 @@ app.post('/api/todos',authMiddleware,  async (req, res) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   });
+
+  // get api for todos 
+
+ app.get("/api/todos", authMiddleware , async (req, res) => {
+    try{
+        const _id = req._id 
+        const totalTodos = await Todo.find({user_id:_id})
+        res.status(200)
+        res.send(totalTodos)
+
+
+    }catch(err){
+        res.status(400)
+        res.send(err)
+    }
+ })
+
+ //delete api for todos 
+
+ app.delete("/api/todos/:todoId", authMiddleware, async (req, res) => {
+    try {
+        const {todoId} = req.params
+        const user = req._id
+        const details = await Todo.findByIdAndDelete({_id: todoId})
+        res.send("deleted successfully")
+    }catch (err){
+        res.status(400)
+        res.send(err)
+    }
+      
+ })
+
+ // api to update the todo 
+
+ app.put("/api/todos/:todoId", authMiddleware, async (req, res) => {
+    try {
+        const {todoId} = req.params
+        const _id = req._id
+        const {title, description} = req.body 
+        const updatedTodo = {title, description, user_id:_id }
+        await Todo.findByIdAndUpdate({_id:todoId}, updatedTodo)
+        res.send("Todo updated successfully")
+    }catch (err){
+        res.status(400)
+        res.send(err)
+    }
+      
+ })
