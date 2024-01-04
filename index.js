@@ -30,12 +30,13 @@ intializeTheServerAndDatabase()
 //Register user API
 
 app.post("/api/register/", async (req, res)=> {
-    const {username, password} = req.body
+    const {name, username, password} = req.body
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
     const userDetails = await User.findOne({ username });
 
     if (!userDetails) {
         const user = new User({
+            name,
             username,
             password: hashedPassword,
           });
@@ -99,7 +100,7 @@ const authMiddleware = (req, res, next) => {
               res.send("Invalid JWT Token");
             } else {
                 const username = payload.username;
-                const { _id} = await User.findOne({username})
+                const {_id} = await User.findOne({username})
                 req._id = _id
               next();
             }
@@ -112,11 +113,10 @@ const authMiddleware = (req, res, next) => {
 
 app.post('/api/todos/',authMiddleware,  async (req, res) => {
     try {
-      const { title, description } = req.body;
+      const { todoItem} = req.body;
       const _id = req._id
       const todo = new Todo({
-        title,
-        description,
+        todoItem,
         user_id: _id,
       });
       await todo.save();
@@ -136,6 +136,7 @@ app.post('/api/todos/',authMiddleware,  async (req, res) => {
         const totalTodos = await Todo.find({user_id:_id})
         res.status(200)
         res.send(totalTodos)
+    
 
 
     }catch(err){
@@ -149,8 +150,16 @@ app.post('/api/todos/',authMiddleware,  async (req, res) => {
     try{
         const {todoId} = req.params
         const resultTodo = await Todo.findOne({_id: todoId})
-        res.status(200)
-        res.send(resultTodo)
+       
+
+        if (resultTodo === null){
+            res.status(400)
+            res.send("No data found")
+        }
+        else {
+            res.status(200)
+            res.send(resultTodo)
+        }
 
 
     }catch(err){
@@ -165,8 +174,8 @@ app.post('/api/todos/',authMiddleware,  async (req, res) => {
     try {
         const {todoId} = req.params
         const _id = req._id
-        const {title, description} = req.body 
-        const updatedTodo = {title, description, user_id:_id }
+        const {todoItem} = req.body 
+        const updatedTodo = {todoItem, user_id:_id }
         await Todo.findByIdAndUpdate({_id:todoId}, updatedTodo)
         res.send("Todo updated successfully")
     }catch (err){
@@ -183,10 +192,10 @@ app.post('/api/todos/',authMiddleware,  async (req, res) => {
         const {todoId} = req.params
         const user = req._id
         const details = await Todo.findByIdAndDelete({_id: todoId})
-        res.send("deleted successfully")
+        res.send("todo deleted successfully")
     }catch (err){
         res.status(400)
-        res.send(err)
+        res.send("err")
     }
       
  })
